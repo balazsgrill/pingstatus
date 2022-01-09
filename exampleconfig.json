@@ -1,0 +1,7 @@
+{
+    "ping": [
+        {
+            "host":    "google.com",
+            "webhook": "https://api.instatus.com/v1/integrations/webhook/google_secretcode"
+        }
+    ]}
