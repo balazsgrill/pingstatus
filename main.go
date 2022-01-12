@@ -68,6 +68,7 @@ func (t *target) ping() {
 	pl := &payload{
 		Name:    "ping",
 		Trigger: "up",
+		Status: "OPERATIONAL",
 	}
 
 	if err != nil {
