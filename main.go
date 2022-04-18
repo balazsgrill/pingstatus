@@ -8,9 +8,9 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/go-ping/ping"
-	"github.com/whiteshtef/clockwork"
 )
 
 type target struct {
@@ -68,7 +68,7 @@ func (t *target) ping() {
 	pl := &payload{
 		Name:    "ping",
 		Trigger: "up",
-		Status: "OPERATIONAL",
+		Status:  "OPERATIONAL",
 	}
 
 	if err != nil {
@@ -110,11 +110,10 @@ func main() {
 		panic(err)
 	}
 
-	sched := clockwork.NewScheduler()
-	sched.Schedule().Every(10).Minutes().Do((&conf).doping)
-
-	(&conf).doping()
-	sched.Run()
+	for {
+		(&conf).doping()
+		time.Sleep(10 * time.Minute)
+	}
 }
 
 func (c *config) doping() {
