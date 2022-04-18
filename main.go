@@ -44,6 +44,8 @@ func (t *target) send(p *payload) error {
 			fmt.Println(err)
 		}
 		resp.Body.Close()
+		fmt.Printf("Error in webhook '%s'\n", t.Webhook)
+		fmt.Printf("%s\n", data)
 		return fmt.Errorf("webhook returned HTTP %d: %s", resp.StatusCode, string(body))
 	}
 	return nil
