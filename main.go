@@ -5,10 +5,22 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-ping/ping"
 )
+
+type Checker interface {
+	Check() (int, string)
+}
+
+func New(host string) Checker {
+	if strings.Contains(host, ":") {
+		return &httpTarget{url: host}
+	}
+	return &target{Host: host}
+}
 
 type target struct {
 	Host string `json:"host"`
@@ -27,6 +39,35 @@ func (t *target) check() (*ping.Statistics, error) {
 		return nil, err
 	}
 	return p.Statistics(), nil
+}
+
+func (t *target) Check() (int, string) {
+	stats, err := t.check()
+
+	if err != nil {
+		log.Printf("Ping error %v\n", err)
+		return 500, err.Error()
+	}
+	if stats.PacketsRecv < stats.PacketsSent {
+		answer := fmt.Sprintf("Received %d packets out of %d", stats.PacketsRecv, stats.PacketsSent)
+		log.Println(answer)
+		return 503, answer
+	}
+	return http.StatusOK, "OK"
+}
+
+type httpTarget struct {
+	url string
+}
+
+func (t *httpTarget) Check() (int, string) {
+	r, err := http.Get(t.url)
+	if err != nil {
+		log.Printf("HTTP error %v\n", err)
+		return 500, err.Error()
+	}
+	log.Printf("%d\n", r.StatusCode)
+	return r.StatusCode, r.Status
 }
 
 func main() {
@@ -51,21 +92,11 @@ func main() {
 			w.WriteHeader(404)
 			return
 		}
-		stats, err := (&target{Host: host}).check()
-		if err != nil {
-			log.Printf("Ping error %v\n", err)
-			w.WriteHeader(500)
-			w.Write([]byte(err.Error()))
-			return
-		}
-		if stats.PacketsRecv < stats.PacketsSent {
-			answer := fmt.Sprintf("Received %d packets out of %d", stats.PacketsRecv, stats.PacketsSent)
-			log.Println(answer)
-			w.WriteHeader(503)
-			w.Write([]byte(answer))
-			return
-		}
-		w.Write([]byte("OK"))
+		t := New(host)
+
+		status, msg := t.Check()
+		w.WriteHeader(status)
+		w.Write([]byte(msg))
 	})
 
 	// listen to port

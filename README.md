@@ -1,1 +1,1 @@
-Simple ping service reporting to instatus.com
+Simple ping/status gateway enabling remote monitoring of internal services
