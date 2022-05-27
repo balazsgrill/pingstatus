@@ -79,6 +79,8 @@ func main() {
 	flag.Parse()
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Connection", "close")
+		defer r.Body.Close()
 		key := r.URL.Query().Get("key")
 		host := r.URL.Query().Get("host")
 		log.Printf("Request on %s\n", host)
