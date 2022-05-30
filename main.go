@@ -66,6 +66,7 @@ func (t *httpTarget) Check() (int, string) {
 		log.Printf("HTTP error %v\n", err)
 		return 500, err.Error()
 	}
+	defer r.Body.Close()
 	log.Printf("%d\n", r.StatusCode)
 	return r.StatusCode, r.Status
 }
